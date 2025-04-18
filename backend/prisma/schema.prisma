@@ -8,16 +8,9 @@ datasource db {
 }
 
 model Transaction {
-  id          Int              @id @default(autoincrement())
-  amount      Decimal          @db.Decimal(10, 2)
-  description String?
-  date        DateTime
-  type        TransactionType  @relation(fields: [typeId], references: [id])
-  typeId      Int
-}
-
-model TransactionType {
-  id           Int            @id @default(autoincrement())
-  type_name    String         @unique
-  transactions Transaction[]  // เชื่อมโยงกับรายการ Transaction
+  id          Int      @id @default(autoincrement())
+  description String   // ชื่อ event เช่น "ค่าข้าว", "เงินเดือน"
+  amount      Decimal  @db.Decimal(10, 2)  // จำนวนเงิน
+  date        DateTime // วันที่ของรายการ
+  isIncome    Boolean  // true = รายรับ, false = รายจ่าย
 }
