@@ -2,14 +2,12 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Calendar, CalendarProps } from 'react-native-calendars';
 
-// Define the props type for CalendarComponent
 interface CalendarComponentProps {
   selectedDate: string;
   onDayPress: (day: { dateString: string }) => void;
 }
 
 const CalendarComponent: React.FC<CalendarComponentProps> = ({ selectedDate, onDayPress }) => {
-  // Custom theme for the calendar
   const calendarTheme: CalendarProps['theme'] = {
     backgroundColor: '#ffffff',
     calendarBackground: '#ffffff',
@@ -34,7 +32,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({ selectedDate, onD
   return (
     <View style={styles.container}>
       <Calendar
-        current={selectedDate}  // Use selectedDate for current date
+        current={selectedDate}
         onDayPress={onDayPress}
         markedDates={{
           [selectedDate]: { selected: true, selectedColor: '#00adf5' },
@@ -47,7 +45,8 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({ selectedDate, onD
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    paddingHorizontal: 8,
+    paddingTop: 16,
     backgroundColor: '#ffffff',
   },
 });

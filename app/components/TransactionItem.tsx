@@ -1,16 +1,14 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-// Define the props type for TransactionItem
 interface TransactionItemProps {
   date: string;
   day: string;
   type: string;
-  total: string;
   amount: string;
 }
 
-const TransactionItem: React.FC<TransactionItemProps> = ({ date, day, type, total, amount }) => {
+const TransactionItem: React.FC<TransactionItemProps> = ({ date, day, type, amount }) => {
   return (
     <TouchableOpacity style={styles.container}>
       <View style={styles.leftContainer}>
@@ -23,8 +21,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ date, day, type, tota
         </View>
       </View>
       <View style={styles.rightContainer}>
-        <Text style={styles.totalText}>{total}</Text>
-        <Text style={[styles.amountText, type === 'SALARY' ? styles.salaryText : styles.expenseText]}>
+        <Text style={[styles.amountText, amount.startsWith('+') ? styles.salaryText : styles.expenseText]}>
           {amount}
         </Text>
       </View>
@@ -75,10 +72,7 @@ const styles = StyleSheet.create({
   rightContainer: {
     alignItems: 'flex-end',
   },
-  totalText: {
-    color: '#3B82F6',
-    fontWeight: 'bold',
-  },
+ 
   amountText: {
     fontSize: 16,
   },

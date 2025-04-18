@@ -1,54 +1,133 @@
 import React, { useState } from 'react';
-import { View, ScrollView } from 'react-native';
+import { SafeAreaView, FlatList, StyleSheet } from 'react-native';
 import CalendarComponent from './components/CalendarComponent';
 import TransactionItem from './components/TransactionItem';
+import MonthlySummary from './components/MonthlySummary';
 
-// Define the type for a transaction
-interface Transaction {
+// Define the TransactionItemProps interface
+interface TransactionItemProps {
   date: string;
   day: string;
   type: string;
-  amount: string;
   total: string;
+  amount: string;
 }
 
+// Sample transaction data (in English)
+const transactionData: { [key: string]: TransactionItemProps[] } = {
+  '2025-04-17': [
+    {
+      date: '17',
+      day: 'Thu',
+      type: 'Salary',
+      total: '$5,000.00',
+      amount: '+$5,000.00',
+    },
+  ],
+  '2025-04-18': [
+    {
+      date: '18',
+      day: 'Fri',
+      type: 'Shopping',
+      total: '$120.00',
+      amount: '-$120.00',
+    },
+  ],
+};
+
 const App: React.FC = () => {
-  const [selectedDate, setSelectedDate] = useState<string>('2021-08-29');
+  // Initialize selectedDate to a date with transactions (April 17, 2025)
+  const [selectedDate, setSelectedDate] = useState<string>("2025-04-17");
 
-  // Sample transaction data for August 29, 2021
-  const transactions: Transaction[] = [
-    { date: '29', day: 'Wed', type: 'BUY GAMES', amount: '-$2,442.10', total: '$45,678.90' },
-    { date: '29', day: 'Wed', type: 'SALARY', amount: '+$20,000.00', total: '$45,678.90' },
-    { date: '29', day: 'Wed', type: 'BUY GAMES', amount: '-$2,442.10', total: '$45,678.90' },
-    { date: '29', day: 'Wed', type: 'BUY GAMES', amount: '-$2,442.10', total: '$45,678.90' },
-    { date: '29', day: 'Wed', type: 'BUY GAMES', amount: '-$2,442.10', total: '$45,678.90' },
-  ];
+  // Initial balance (starting point)
+  const initialBalance = 50000;
 
-  // Handle date selection
-  const onDayPress = (day: { dateString: string }) => {
-    setSelectedDate(day.dateString);
+  // Function to calculate balance up to the end of the previous month
+  const calculateBalanceUpToPreviousMonth = (selectedDate: string): number => {
+    const selected = new Date(selectedDate);
+    const selectedYear = selected.getFullYear();
+    const selectedMonth = selected.getMonth() + 1; // JavaScript months are 0-based
+
+    let balance = initialBalance;
+
+    // Sort dates to process transactions chronologically
+    const sortedDates = Object.keys(transactionData).sort();
+
+    for (const date of sortedDates) {
+      const [year, month] = date.split('-').map(Number);
+      // Only consider transactions before the selected month
+      if (year < selectedYear || (year === selectedYear && month < selectedMonth)) {
+        const transactions = transactionData[date];
+        transactions.forEach((transaction) => {
+          const amount = parseFloat(transaction.amount.replace(/[$+]/g, ''));
+          if (transaction.amount.startsWith('+')) {
+            balance += amount;
+          } else {
+            balance -= Math.abs(amount);
+          }
+        });
+      }
+    }
+
+    return balance;
   };
 
-  return (
-    <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
-      {/* Calendar Section */}
-      <CalendarComponent selectedDate={selectedDate} onDayPress={onDayPress} />
+  // Function to update selectedDate when month changes
+  const handleMonthChange = (newMonth: Date) => {
+    const newDate = new Date(newMonth);
+    newDate.setDate(1);
+    setSelectedDate(newDate.toISOString().split('T')[0]);
+  };
 
-      {/* Transactions List */}
-      <ScrollView style={{ flex: 1, padding: 16 }}>
-        {transactions.map((transaction, index) => (
+  // Calculate the balance up to the previous month
+  const balanceUpToPreviousMonth = calculateBalanceUpToPreviousMonth(selectedDate);
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <CalendarComponent
+        selectedDate={selectedDate}
+        onDayPress={(day) => setSelectedDate(day.dateString)}
+      />
+      <MonthlySummary
+        selectedDate={selectedDate}
+        onMonthChange={handleMonthChange}
+        transactionData={transactionData}
+        balance={balanceUpToPreviousMonth}
+      />
+      <FlatList
+        contentContainerStyle={styles.listContainer}
+        data={transactionData[selectedDate] || []}
+        keyExtractor={(_, index) => index.toString()}
+        renderItem={({ item }) => (
           <TransactionItem
-            key={index}
-            date={transaction.date}
-            day={transaction.day}
-            type={transaction.type}
-            total={transaction.total}
-            amount={transaction.amount}
+            date={item.date}
+            day={item.day}
+            type={item.type}
+            amount={item.amount}
           />
-        ))}
-      </ScrollView>
-    </View>
+        )}
+        ListEmptyComponent={() => (
+          <TransactionItem
+            date="No"
+            day="Transactions"
+            type="N/A"
+            amount="$0.00"
+          />
+        )}
+      />
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f3f4f6',
+  },
+  listContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+});
 
 export default App;
