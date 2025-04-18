@@ -1,0 +1,23 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // หรือ "sqlite" ได้ตามที่คุณใช้
+  url      = env("DATABASE_URL")
+}
+
+model Transaction {
+  id          Int              @id @default(autoincrement())
+  amount      Decimal          @db.Decimal(10, 2)
+  description String?
+  date        DateTime
+  type        TransactionType  @relation(fields: [typeId], references: [id])
+  typeId      Int
+}
+
+model TransactionType {
+  id           Int            @id @default(autoincrement())
+  type_name    String
+  transactions Transaction[]
+}
