@@ -18,6 +18,6 @@ model Transaction {
 
 model TransactionType {
   id           Int            @id @default(autoincrement())
-  type_name    String
-  transactions Transaction[]
+  type_name    String         @unique
+  transactions Transaction[]  // เชื่อมโยงกับรายการ Transaction
 }
