@@ -38,12 +38,14 @@ const MonthlySummary: React.FC<MonthlySummaryProps> = ({
   const getMonthlySummary = () => {
     const year = selectedMonth.getFullYear();
     const month = selectedMonth.getMonth();
-
+  
     let income = 0;
     let expense = 0;
-
+  
+    // คำนวณรวมรายได้และค่าใช้จ่ายในเดือนที่เลือก
     transactions.forEach((transaction) => {
       const transactionDate = new Date(transaction.date);
+      // ตรวจสอบว่า transaction อยู่ในเดือนและปีเดียวกับ selectedMonth
       if (
         transactionDate.getFullYear() === year &&
         transactionDate.getMonth() === month
@@ -56,15 +58,16 @@ const MonthlySummary: React.FC<MonthlySummaryProps> = ({
         }
       }
     });
-
+  
     const finalBalance = income - expense;
-
+  
     return {
       income: income.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
       expense: expense.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
       total: finalBalance.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
     };
   };
+  
 
   const { income, expense, total } = getMonthlySummary();
 

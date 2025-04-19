@@ -4,6 +4,7 @@ import CalendarComponent from '../components/CalendarComponent';
 import TransactionItem from '../components/TransactionItem';
 import MonthlySummary from '../components/MonthlySummary';
 import styles from './HomeScreen.styles';
+import MonthTab from '../tabs/MonthTab'; // นำเข้า MonthTab
 
 interface TransactionItemProps {
   id: number;
@@ -15,13 +16,14 @@ interface TransactionItemProps {
   isIncome: boolean;
 }
 
-const API_URL = "https://real-sloths-sniff.loca.lt/api/transactions";
+const API_URL = "https://breezy-clowns-brush.loca.lt/api/transactions";
 
 const HomeScreen = () => {
-  const [selectedDate, setSelectedDate] = useState<string>("2025-04-17");
+  const [selectedDate, setSelectedDate] = useState<string>("2025-04-01"); // Set to first day of selected month initially
   const [transactions, setTransactions] = useState<TransactionItemProps[]>([]);
   const [markedDates, setMarkedDates] = useState<{ [key: string]: { marked: boolean; dotColor: string } }>({});
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false); // State สำหรับ trigger การ refresh
 
   const [description, setDescription] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
@@ -32,13 +34,14 @@ const HomeScreen = () => {
       const response = await fetch(`${API_URL}?date=${date}`);
       if (response.ok) {
         const data: TransactionItemProps[] = await response.json();
+        // กรองเฉพาะ transaction ที่ตรงกับวันที่ที่เลือก
         const filteredTransactions = data.filter(
           (transaction) => transaction.date.split('T')[0] === date
         );
         setTransactions(filteredTransactions);
-
+  
         const newMarkedDates: { [key: string]: { marked: boolean; dotColor: string } } = {};
-        data.forEach((transaction) => {
+        filteredTransactions.forEach((transaction) => {
           const transactionDate = transaction.date.split('T')[0];
           newMarkedDates[transactionDate] = { marked: true, dotColor: '#00adf5' };
         });
@@ -78,6 +81,7 @@ const HomeScreen = () => {
         setIsIncome(false);
         setIsModalVisible(false);
         fetchTransactions(selectedDate);
+        setRefreshTrigger((prev) => !prev); // Trigger refresh
       } else {
         const errorData = await response.json();
         console.error('Error response:', errorData);
@@ -94,6 +98,7 @@ const HomeScreen = () => {
       const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
       if (response.ok) {
         fetchTransactions(selectedDate);
+        setRefreshTrigger((prev) => !prev); // Trigger refresh
       } else {
         Alert.alert('Error', 'Failed to delete transaction.');
       }
@@ -119,12 +124,16 @@ const HomeScreen = () => {
         </View>
 
         <View style={styles.summarySection}>
-        <MonthlySummary
-  selectedDate={selectedDate}
-  onMonthChange={(newMonth) => setSelectedDate(newMonth.toISOString().split('T')[0])}
-  transactions={transactions}
-/>
+          <MonthlySummary
+            selectedDate={selectedDate}
+            onMonthChange={(newMonth) => setSelectedDate(newMonth.toISOString().split('T')[0])}
+            transactions={transactions}
+          />
+        </View>
 
+        {/* เพิ่ม MonthTab */}
+        <View>
+          <MonthTab selectedMonth={selectedDate.slice(0, 7)} refreshTrigger={refreshTrigger} /> {/* ส่งเฉพาะปีและเดือน */}
         </View>
 
         <TouchableOpacity style={styles.addButton} onPress={() => setIsModalVisible(true)}>
