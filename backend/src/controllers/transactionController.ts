@@ -1,49 +1,69 @@
-import { Request, Response } from 'express';
-import * as transactionService from '../services/transactionService';
+import { Request, Response } from "express";
+import * as TransactionService from "../services/transactionService";
+import { z, ZodError } from "zod";
 
-export const getAllTransactions = async (req: Request, res: Response) => {
-  try {
-    const transactions = await transactionService.getAllTransactions();
-    res.json(transactions);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch transactions' });
-  }
+// Schema validation for Transaction
+const TransactionSchema = z.object({
+  description: z.string().min(1, "Description is required"),
+  amount: z.number().positive("Amount must be positive"),
+  date: z.string().refine((val) => !isNaN(Date.parse(val)), "Invalid date format"),
+  isIncome: z.boolean(),
+});
+
+export const getTransactions = async (_req: Request, res: Response) => {
+  const transactions = await TransactionService.getAllTransactions();
+  res.json(transactions);
 };
 
-export const getTransactionById = async (req: Request, res: Response): Promise<Response | void> => {
-  try {
-    const { id } = req.params;
-    const transaction = await transactionService.getTransactionById(Number(id));
-    if (!transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-    return res.json(transaction);
-  } catch (error) {
-    return res.status(500).json({ error: 'Failed to fetch transaction' });
+export const getTransaction = async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id, 10);
+  const transaction = await TransactionService.getTransactionById(id);
+  if (transaction) {
+    res.json(transaction);
+  } else {
+    res.status(404).json({ error: "Transaction not found" });
   }
 };
 
 export const createTransaction = async (req: Request, res: Response) => {
   try {
-    const { description, amount, date, isIncome } = req.body;
-    const transaction = await transactionService.createTransaction({
-      description,
-      amount,
-      date: new Date(date),
-      isIncome,
-    });
+    const validatedData = TransactionSchema.parse(req.body);
+    const transaction = await TransactionService.createTransaction(validatedData);
     res.status(201).json(transaction);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to create transaction' });
+    if (error instanceof ZodError) {
+      res.status(400).json({ error: error.errors });
+    } else if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Unknown error occurred" });
+    }
+  }
+};
+
+export const updateTransaction = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const validatedData = TransactionSchema.parse(req.body);
+    const transaction = await TransactionService.updateTransaction(id, validatedData);
+    res.json(transaction);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      res.status(400).json({ error: error.errors });
+    } else if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Unknown error occurred" });
+    }
   }
 };
 
 export const deleteTransaction = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    await transactionService.deleteTransaction(Number(id));
+    const id = parseInt(req.params.id, 10);
+    await TransactionService.deleteTransaction(id);
     res.status(204).send();
   } catch (error) {
-    res.status(500).json({ error: 'Failed to delete transaction' });
+    res.status(404).json({ error: "Transaction not found" });
   }
 };
