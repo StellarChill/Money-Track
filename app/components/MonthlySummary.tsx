@@ -65,12 +65,11 @@ const MonthlySummary: React.FC<MonthlySummaryProps> = ({ selectedDate, onMonthCh
       if (date.startsWith(monthStr)) {
         const transactions = transactionData[date];
         transactions.forEach((transaction) => {
-          // Remove $, +, and commas from the amount string before parsing
-          const amount = parseFloat(transaction.amount.replace(/[$+,]/g, ''));
-          if (transaction.amount.startsWith('+')) {
-            income += amount; // Add to monthly income
-          } else {
-            expense += Math.abs(amount); // Add to monthly expenses
+          const amount = parseFloat(transaction.amount); // แปลง amount เป็นตัวเลข
+          if (transaction.type === 'Income') {
+            income += amount; // รวมยอดรายรับ
+          } else if (transaction.type === 'Expense') {
+            expense += amount; // รวมยอดรายจ่าย
           }
 
           if (!dailySummaries[date]) {
@@ -82,7 +81,7 @@ const MonthlySummary: React.FC<MonthlySummaryProps> = ({ selectedDate, onMonthCh
             };
           }
 
-          // Add the transaction to the day's transactions list
+          // เพิ่ม transaction ลงใน dailySummaries
           dailySummaries[date].transactions.push({
             type: transaction.type,
             amount: transaction.amount,
@@ -95,9 +94,8 @@ const MonthlySummary: React.FC<MonthlySummaryProps> = ({ selectedDate, onMonthCh
       .map((date) => dailySummaries[date])
       .sort((a, b) => parseInt(b.date) - parseInt(a.date));
 
-    // Calculate intermediate balance (after income, before expenses)
+    // คำนวณยอดคงเหลือ
     const balanceAfterIncome = balance + income;
-    // Calculate final balance (after income and expenses)
     const finalBalance = balance + income - expense;
 
     return {
@@ -126,7 +124,7 @@ const MonthlySummary: React.FC<MonthlySummaryProps> = ({ selectedDate, onMonthCh
             <Text
               style={[
                 styles.transactionAmount,
-                transaction.amount.startsWith('+') ? styles.incomeText : styles.expenseText,
+                transaction.type === 'Income' ? styles.incomeText : styles.expenseText,
               ]}
             >
               {transaction.amount}
@@ -170,13 +168,7 @@ const MonthlySummary: React.FC<MonthlySummaryProps> = ({ selectedDate, onMonthCh
         </View>
       </View>
 
-      {/* Daily Summaries */}
-      <FlatList
-        data={dailySummaries}
-        renderItem={renderDailySummary}
-        keyExtractor={(item) => item.date}
-        contentContainerStyle={styles.listContainer}
-      />
+
     </View>
   );
 };

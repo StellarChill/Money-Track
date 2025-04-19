@@ -1,75 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Button, FlatList, Text, Alert } from 'react-native';
-import { Calendar, CalendarProps } from 'react-native-calendars';
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import { Calendar } from 'react-native-calendars';
 
 interface CalendarComponentProps {
   selectedDate: string;
   onDayPress: (day: { dateString: string }) => void;
+  markedDates: { [key: string]: { marked: boolean; dotColor: string } };
 }
 
-interface Event {
-  id: number;
-  description: string;
-  amount: string;
-}
-
-const CalendarComponent: React.FC<CalendarComponentProps> = ({ selectedDate, onDayPress }) => {
-  const [events, setEvents] = useState<Event[]>([]);
-
-  // Fetch events for the selected date
-  const fetchEvents = async (date: string) => {
-    try {
-      const response = await fetch(`http://localhost:3000/events?date=${date}`);
-      const data = await response.json();
-      setEvents(data);
-    } catch (error) {
-      console.error('Error fetching events:', error);
-    }
-  };
-
-  // Add a new event
-  const addEvent = async () => {
-    try {
-      const newEvent = { description: 'New Event', amount: '+100', date: selectedDate };
-      const response = await fetch('http://localhost:3000/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newEvent),
-      });
-      if (response.ok) {
-        fetchEvents(selectedDate); // Refresh events
-      }
-    } catch (error) {
-      console.error('Error adding event:', error);
-    }
-  };
-
-  // Delete an event
-  const deleteEvent = async (id: number) => {
-    try {
-      const response = await fetch(`http://localhost:3000/events/${id}`, { method: 'DELETE' });
-      if (response.ok) {
-        fetchEvents(selectedDate); // Refresh events
-      }
-    } catch (error) {
-      console.error('Error deleting event:', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchEvents(selectedDate);
-  }, [selectedDate]);
-
+const CalendarComponent: React.FC<CalendarComponentProps> = ({ selectedDate, onDayPress, markedDates }) => {
   return (
     <View style={styles.container}>
       <Calendar
         current={selectedDate}
-        onDayPress={(day) => {
-          onDayPress(day);
-          fetchEvents(day.dateString);
-        }}
+        onDayPress={(day) => onDayPress(day)}
         markedDates={{
-          [selectedDate]: { selected: true, selectedColor: '#00adf5' },
+          ...markedDates, // ใช้ markedDates ที่ส่งมาจาก HomeScreen
+          [selectedDate]: { selected: true, selectedColor: '#00adf5' }, // เพิ่ม selectedDate
         }}
         theme={{
           backgroundColor: '#ffffff',
@@ -92,17 +39,6 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({ selectedDate, onD
           textDayHeaderFontSize: 16,
         }}
       />
-      <Button title="Add Event" onPress={addEvent} />
-      <FlatList
-        data={events}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.eventItem}>
-            <Text>{item.description} - {item.amount}</Text>
-            <Button title="Delete" onPress={() => deleteEvent(item.id)} />
-          </View>
-        )}
-      />
     </View>
   );
 };
@@ -112,15 +48,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingTop: 16,
     backgroundColor: '#ffffff',
-  },
-  eventItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 8,
-    marginVertical: 4,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 4,
   },
 });
 
