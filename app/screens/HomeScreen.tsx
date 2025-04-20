@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   SafeAreaView,
   View,
@@ -10,6 +10,7 @@ import {
   Modal,
   TouchableOpacity,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import CalendarComponent from '../components/CalendarComponent';
 import TransactionItem from '../components/TransactionItem';
@@ -29,6 +30,7 @@ interface TransactionItemProps {
 }
 
 const API_URL = "https://early-fans-swim.loca.lt/api/transactions";
+const PAGE_SIZE = 10;
 
 const HomeScreen = () => {
   const [selectedDate, setSelectedDate] = useState<string>("2025-04-01");
@@ -36,35 +38,69 @@ const HomeScreen = () => {
   const [markedDates, setMarkedDates] = useState<{ [key: string]: { marked: boolean; dotColor: string } }>({});
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false);
-
   const [description, setDescription] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
   const [isIncome, setIsIncome] = useState<boolean>(false);
 
-  const fetchTransactions = async (date: string) => {
+  const [page, setPage] = useState<number>(1);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+
+  const fetchTransactions = useCallback(async (reset = false) => {
     try {
-      const response = await fetch(`${API_URL}?date=${date}`);
+      if (isLoading) return;
+
+      setIsLoading(true);
+      const response = await fetch(`${API_URL}?date=${selectedDate}&page=${reset ? 1 : page}&limit=${PAGE_SIZE}`);
       if (response.ok) {
         const data: TransactionItemProps[] = await response.json();
-        const filteredTransactions = data.filter(
-          (transaction) => transaction.date.split('T')[0] === date
+        const filtered = data.filter(
+          (transaction) => transaction.date.split('T')[0] === selectedDate
         );
-        setTransactions(filteredTransactions);
 
-        const newMarkedDates: { [key: string]: { marked: boolean; dotColor: string } } = {};
-        filteredTransactions.forEach((transaction) => {
-          const transactionDate = transaction.date.split('T')[0];
-          newMarkedDates[transactionDate] = { marked: true, dotColor: '#00adf5' };
+        if (reset) {
+          setTransactions(filtered);
+        } else {
+          setTransactions((prev) => [...prev, ...filtered]);
+        }
+
+        const newMarked: { [key: string]: { marked: boolean; dotColor: string } } = {};
+        filtered.forEach((t) => {
+          const dateKey = t.date.split('T')[0];
+          newMarked[dateKey] = { marked: true, dotColor: '#00adf5' };
         });
-        setMarkedDates(newMarkedDates);
+        setMarkedDates((prev) => ({ ...prev, ...newMarked }));
+
+        if (filtered.length < PAGE_SIZE) setHasMore(false);
+        else setHasMore(true);
       } else {
         Alert.alert('Error', 'Failed to fetch transactions.');
       }
     } catch (error) {
       console.error('Error fetching transactions:', error);
       Alert.alert('Error', 'An error occurred while fetching transactions.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [page, selectedDate, isLoading]);
+
+  const loadMore = () => {
+    if (!isLoading && hasMore) {
+      setPage((prev) => prev + 1);
     }
   };
+
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    fetchTransactions(true);
+  }, [selectedDate]);
+
+  useEffect(() => {
+    if (page > 1) {
+      fetchTransactions();
+    }
+  }, [page]);
 
   const addTransaction = async () => {
     if (!description || !amount) {
@@ -91,7 +127,8 @@ const HomeScreen = () => {
         setAmount('');
         setIsIncome(false);
         setIsModalVisible(false);
-        fetchTransactions(selectedDate);
+        setPage(1);
+        fetchTransactions(true);
         setRefreshTrigger((prev) => !prev);
       } else {
         const errorData = await response.json();
@@ -108,7 +145,8 @@ const HomeScreen = () => {
     try {
       const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
       if (response.ok) {
-        fetchTransactions(selectedDate);
+        setPage(1);
+        fetchTransactions(true);
         setRefreshTrigger((prev) => !prev);
       } else {
         Alert.alert('Error', 'Failed to delete transaction.');
@@ -118,10 +156,6 @@ const HomeScreen = () => {
       Alert.alert('Error', 'An error occurred while deleting the transaction.');
     }
   };
-
-  useEffect(() => {
-    fetchTransactions(selectedDate);
-  }, [selectedDate]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -144,13 +178,8 @@ const HomeScreen = () => {
               />
             </View>
 
-            <View>
-              <MonthTab selectedMonth={selectedDate.slice(0, 7)} refreshTrigger={refreshTrigger} />
-            </View>
-
-            <View>
-              <AllTab refreshTrigger={refreshTrigger} />
-            </View>
+            <MonthTab selectedMonth={selectedDate.slice(0, 7)} refreshTrigger={refreshTrigger} />
+            <AllTab refreshTrigger={refreshTrigger} />
 
             <TouchableOpacity style={styles.addButton} onPress={() => setIsModalVisible(true)}>
               <Text style={styles.addButtonText}>+ Add Transaction</Text>
@@ -161,12 +190,16 @@ const HomeScreen = () => {
         }
         contentContainerStyle={styles.listContainer}
         data={transactions}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.id.toString()} 
         renderItem={({ item }) => (
           <View style={styles.transactionItem}>
             <View style={styles.transactionHeader}>
               <Text style={styles.transactionDay}>
-                {new Date(item.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                {new Date(item.date).toLocaleDateString('en-US', {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                })}
               </Text>
               <Text style={item.isIncome ? styles.transactionAmount : styles.transactionAmountExpense}>
                 {item.isIncome ? '+' : '-'}${parseFloat(item.amount).toFixed(2)}
@@ -180,9 +213,10 @@ const HomeScreen = () => {
             </TouchableOpacity>
           </View>
         )}
-        ListEmptyComponent={() => (
-          <Text style={styles.emptyText}>No transactions available</Text>
-        )}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={() => isLoading && <ActivityIndicator size="small" color="#0000ff" />}
+        ListEmptyComponent={() => !isLoading && <Text style={styles.emptyText}>No transactions available</Text>}
       />
 
       <Modal visible={isModalVisible} animationType="slide" transparent={true}>
