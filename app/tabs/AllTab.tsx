@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Alert } from 'react-native';
-import styles from './MonthTab.styles';
+import styles from './AllTab.styles';
 
 interface TransactionItemProps {
   id: number;
@@ -14,14 +14,14 @@ interface TransactionItemProps {
 
 const API_URL = "https://early-fans-swim.loca.lt/api/transactions";
 
-const MonthTab = ({ selectedMonth, refreshTrigger }: { selectedMonth: string; refreshTrigger: boolean }) => {
+const AllTab = ({ refreshTrigger }: { refreshTrigger: boolean }) => {
   const [income, setIncome] = useState<number>(0);
   const [expenses, setExpenses] = useState<number>(0);
   const [finalBalance, setFinalBalance] = useState<number>(0);
 
-  const fetchMonthlySummary = async (month: string) => {
+  const fetchAllSummary = async () => {
     try {
-      const response = await fetch(`${API_URL}?month=${month}`);
+      const response = await fetch(`${API_URL}`);
       if (response.ok) {
         const data: TransactionItemProps[] = await response.json();
 
@@ -30,14 +30,11 @@ const MonthTab = ({ selectedMonth, refreshTrigger }: { selectedMonth: string; re
 
         // คำนวณรายได้และค่าใช้จ่าย
         data.forEach((transaction) => {
-          const transactionDate = new Date(transaction.date);
-          if (transactionDate.toISOString().startsWith(month)) {
-            const amount = parseFloat(transaction.amount);
-            if (transaction.isIncome) {
-              totalIncome += amount;
-            } else {
-              totalExpenses += amount;
-            }
+          const amount = parseFloat(transaction.amount);
+          if (transaction.isIncome) {
+            totalIncome += amount;
+          } else {
+            totalExpenses += amount;
           }
         });
 
@@ -54,12 +51,12 @@ const MonthTab = ({ selectedMonth, refreshTrigger }: { selectedMonth: string; re
   };
 
   useEffect(() => {
-    fetchMonthlySummary(selectedMonth);
-  }, [selectedMonth, refreshTrigger]); // เพิ่ม refreshTrigger เพื่อ trigger การ fetch ใหม่
+    fetchAllSummary();
+  }, [refreshTrigger]); // Trigger fetch ใหม่เมื่อ refreshTrigger เปลี่ยนแปลง
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Summary for {selectedMonth}</Text>
+      <Text style={styles.title}>Summary for All Transactions</Text>
       <View style={styles.summaryContainer}>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>Income</Text>
@@ -89,4 +86,4 @@ const MonthTab = ({ selectedMonth, refreshTrigger }: { selectedMonth: string; re
   );
 };
 
-export default MonthTab;
+export default AllTab;

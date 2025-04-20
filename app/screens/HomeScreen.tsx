@@ -5,6 +5,7 @@ import TransactionItem from '../components/TransactionItem';
 import MonthlySummary from '../components/MonthlySummary';
 import styles from './HomeScreen.styles';
 import MonthTab from '../tabs/MonthTab'; // นำเข้า MonthTab
+import AllTab from '../tabs/AllTab'; // นำเข้า AllTab
 
 interface TransactionItemProps {
   id: number;
@@ -16,7 +17,7 @@ interface TransactionItemProps {
   isIncome: boolean;
 }
 
-const API_URL = "https://breezy-clowns-brush.loca.lt/api/transactions";
+const API_URL = "https://early-fans-swim.loca.lt/api/transactions";
 
 const HomeScreen = () => {
   const [selectedDate, setSelectedDate] = useState<string>("2025-04-01"); // Set to first day of selected month initially
@@ -134,6 +135,11 @@ const HomeScreen = () => {
         {/* เพิ่ม MonthTab */}
         <View>
           <MonthTab selectedMonth={selectedDate.slice(0, 7)} refreshTrigger={refreshTrigger} /> {/* ส่งเฉพาะปีและเดือน */}
+        </View>
+
+        {/* เพิ่ม AllTab */}
+        <View>
+          <AllTab refreshTrigger={refreshTrigger}/> {/* แสดงผลรวมของทุกธุรกรรม */}
         </View>
 
         <TouchableOpacity style={styles.addButton} onPress={() => setIsModalVisible(true)}>
