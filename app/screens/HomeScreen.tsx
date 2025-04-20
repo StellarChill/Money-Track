@@ -9,7 +9,7 @@ import {
   Switch,
   Modal,
   TouchableOpacity,
-  FlatList
+  FlatList,
 } from 'react-native';
 import CalendarComponent from '../components/CalendarComponent';
 import TransactionItem from '../components/TransactionItem';
@@ -164,16 +164,20 @@ const HomeScreen = () => {
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.transactionItem}>
-            <TransactionItem
-              date={item.date}
-              day={new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' })}
-              type={item.isIncome ? 'Income' : 'Expense'}
-              amount={item.amount}
-            />
-            <View style={styles.transactionActions}>
-              <Text>{item.description} - {item.amount}</Text>
-              <Button title="Delete" onPress={() => deleteTransaction(item.id)} />
+            <View style={styles.transactionHeader}>
+              <Text style={styles.transactionDay}>
+                {new Date(item.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+              </Text>
+              <Text style={item.isIncome ? styles.transactionAmount : styles.transactionAmountExpense}>
+                {item.isIncome ? '+' : '-'}${parseFloat(item.amount).toFixed(2)}
+              </Text>
             </View>
+            <View style={styles.transactionDetails}>
+              <Text style={styles.transactionText}>{item.description}</Text>
+            </View>
+            <TouchableOpacity style={styles.deleteButton} onPress={() => deleteTransaction(item.id)}>
+              <Text style={styles.deleteButtonText}>Delete</Text>
+            </TouchableOpacity>
           </View>
         )}
         ListEmptyComponent={() => (
