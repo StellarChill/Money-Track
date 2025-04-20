@@ -1,11 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, View, FlatList, Alert, Text, Button, TextInput, Switch, Modal, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  SafeAreaView,
+  View,
+  Alert,
+  Text,
+  Button,
+  TextInput,
+  Switch,
+  Modal,
+  TouchableOpacity,
+  FlatList
+} from 'react-native';
 import CalendarComponent from '../components/CalendarComponent';
 import TransactionItem from '../components/TransactionItem';
 import MonthlySummary from '../components/MonthlySummary';
 import styles from './HomeScreen.styles';
-import MonthTab from '../tabs/MonthTab'; // นำเข้า MonthTab
-import AllTab from '../tabs/AllTab'; // นำเข้า AllTab
+import MonthTab from '../tabs/MonthTab';
+import AllTab from '../tabs/AllTab';
 
 interface TransactionItemProps {
   id: number;
@@ -20,11 +31,11 @@ interface TransactionItemProps {
 const API_URL = "https://early-fans-swim.loca.lt/api/transactions";
 
 const HomeScreen = () => {
-  const [selectedDate, setSelectedDate] = useState<string>("2025-04-01"); // Set to first day of selected month initially
+  const [selectedDate, setSelectedDate] = useState<string>("2025-04-01");
   const [transactions, setTransactions] = useState<TransactionItemProps[]>([]);
   const [markedDates, setMarkedDates] = useState<{ [key: string]: { marked: boolean; dotColor: string } }>({});
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-  const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false); // State สำหรับ trigger การ refresh
+  const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false);
 
   const [description, setDescription] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
@@ -35,12 +46,11 @@ const HomeScreen = () => {
       const response = await fetch(`${API_URL}?date=${date}`);
       if (response.ok) {
         const data: TransactionItemProps[] = await response.json();
-        // กรองเฉพาะ transaction ที่ตรงกับวันที่ที่เลือก
         const filteredTransactions = data.filter(
           (transaction) => transaction.date.split('T')[0] === date
         );
         setTransactions(filteredTransactions);
-  
+
         const newMarkedDates: { [key: string]: { marked: boolean; dotColor: string } } = {};
         filteredTransactions.forEach((transaction) => {
           const transactionDate = transaction.date.split('T')[0];
@@ -82,7 +92,7 @@ const HomeScreen = () => {
         setIsIncome(false);
         setIsModalVisible(false);
         fetchTransactions(selectedDate);
-        setRefreshTrigger((prev) => !prev); // Trigger refresh
+        setRefreshTrigger((prev) => !prev);
       } else {
         const errorData = await response.json();
         console.error('Error response:', errorData);
@@ -99,7 +109,7 @@ const HomeScreen = () => {
       const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
       if (response.ok) {
         fetchTransactions(selectedDate);
-        setRefreshTrigger((prev) => !prev); // Trigger refresh
+        setRefreshTrigger((prev) => !prev);
       } else {
         Alert.alert('Error', 'Failed to delete transaction.');
       }
@@ -115,63 +125,61 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.calendarSection}>
-          <CalendarComponent
-            selectedDate={selectedDate}
-            onDayPress={(day) => setSelectedDate(day.dateString)}
-            markedDates={markedDates}
-          />
-        </View>
+      <FlatList
+        ListHeaderComponent={
+          <>
+            <View style={styles.calendarSection}>
+              <CalendarComponent
+                selectedDate={selectedDate}
+                onDayPress={(day) => setSelectedDate(day.dateString)}
+                markedDates={markedDates}
+              />
+            </View>
 
-        <View style={styles.summarySection}>
-          <MonthlySummary
-            selectedDate={selectedDate}
-            onMonthChange={(newMonth) => setSelectedDate(newMonth.toISOString().split('T')[0])}
-            transactions={transactions}
-          />
-        </View>
+            <View style={styles.summarySection}>
+              <MonthlySummary
+                selectedDate={selectedDate}
+                onMonthChange={(newMonth) => setSelectedDate(newMonth.toISOString().split('T')[0])}
+                transactions={transactions}
+              />
+            </View>
 
-        {/* เพิ่ม MonthTab */}
-        <View>
-          <MonthTab selectedMonth={selectedDate.slice(0, 7)} refreshTrigger={refreshTrigger} /> {/* ส่งเฉพาะปีและเดือน */}
-        </View>
+            <View>
+              <MonthTab selectedMonth={selectedDate.slice(0, 7)} refreshTrigger={refreshTrigger} />
+            </View>
 
-        {/* เพิ่ม AllTab */}
-        <View>
-          <AllTab refreshTrigger={refreshTrigger}/> {/* แสดงผลรวมของทุกธุรกรรม */}
-        </View>
+            <View>
+              <AllTab refreshTrigger={refreshTrigger} />
+            </View>
 
-        <TouchableOpacity style={styles.addButton} onPress={() => setIsModalVisible(true)}>
-          <Text style={styles.addButtonText}>+ Add Transaction</Text>
-        </TouchableOpacity>
+            <TouchableOpacity style={styles.addButton} onPress={() => setIsModalVisible(true)}>
+              <Text style={styles.addButtonText}>+ Add Transaction</Text>
+            </TouchableOpacity>
 
-        <View style={styles.transactionsSection}>
-          <Text style={styles.sectionTitle}>Transactions</Text>
-          <FlatList
-            contentContainerStyle={styles.listContainer}
-            data={transactions}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <View style={styles.transactionItem}>
-                <TransactionItem
-                  date={item.date}
-                  day={new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' })}
-                  type={item.isIncome ? 'Income' : 'Expense'}
-                  amount={item.amount}
-                />
-                <View style={styles.transactionActions}>
-                  <Text>{item.description} - {item.amount}</Text>
-                  <Button title="Delete" onPress={() => deleteTransaction(item.id)} />
-                </View>
-              </View>
-            )}
-            ListEmptyComponent={() => (
-              <Text style={styles.emptyText}>No transactions available</Text>
-            )}
-          />
-        </View>
-      </ScrollView>
+            <Text style={styles.sectionTitle}>Transactions</Text>
+          </>
+        }
+        contentContainerStyle={styles.listContainer}
+        data={transactions}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.transactionItem}>
+            <TransactionItem
+              date={item.date}
+              day={new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' })}
+              type={item.isIncome ? 'Income' : 'Expense'}
+              amount={item.amount}
+            />
+            <View style={styles.transactionActions}>
+              <Text>{item.description} - {item.amount}</Text>
+              <Button title="Delete" onPress={() => deleteTransaction(item.id)} />
+            </View>
+          </View>
+        )}
+        ListEmptyComponent={() => (
+          <Text style={styles.emptyText}>No transactions available</Text>
+        )}
+      />
 
       <Modal visible={isModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalContainer}>

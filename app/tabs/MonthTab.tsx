@@ -55,7 +55,7 @@ const MonthTab = ({ selectedMonth, refreshTrigger }: { selectedMonth: string; re
 
   useEffect(() => {
     fetchMonthlySummary(selectedMonth);
-  }, [selectedMonth, refreshTrigger]); // เพิ่ม refreshTrigger เพื่อ trigger การ fetch ใหม่
+  }, [selectedMonth, refreshTrigger]); // Trigger fetch ใหม่เมื่อ refreshTrigger เปลี่ยนแปลง
 
   return (
     <View style={styles.container}>
