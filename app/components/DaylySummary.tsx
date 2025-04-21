@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import styles from './MonthlySummary.styles';
+import styles from './DaylySummary.styles';
 
 interface TransactionItemProps {
   id: number;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Alert } from 'react-native';
 import styles from './AllTab.styles';
+import { API_URL } from '../../constants/api'; // นำเข้า API_URL
 
 interface TransactionItemProps {
   id: number;
@@ -12,7 +13,7 @@ interface TransactionItemProps {
   isIncome: boolean;
 }
 
-const API_URL = "https://early-fans-swim.loca.lt/api/transactions";
+// ลบ const API_URL = "https://great-parks-judge.loca.lt/api/transactions"; แล้วใช้จาก constants/api.ts แทน
 
 const AllTab = ({ refreshTrigger }: { refreshTrigger: boolean }) => {
   const [income, setIncome] = useState<number>(0);
@@ -21,14 +22,13 @@ const AllTab = ({ refreshTrigger }: { refreshTrigger: boolean }) => {
 
   const fetchAllSummary = async () => {
     try {
-      const response = await fetch(`${API_URL}`);
+      const response = await fetch(API_URL);
       if (response.ok) {
         const data: TransactionItemProps[] = await response.json();
 
         let totalIncome = 0;
         let totalExpenses = 0;
 
-        // คำนวณรายได้และค่าใช้จ่าย
         data.forEach((transaction) => {
           const amount = parseFloat(transaction.amount);
           if (transaction.isIncome) {
@@ -52,7 +52,7 @@ const AllTab = ({ refreshTrigger }: { refreshTrigger: boolean }) => {
 
   useEffect(() => {
     fetchAllSummary();
-  }, [refreshTrigger]); // Trigger fetch ใหม่เมื่อ refreshTrigger เปลี่ยนแปลง
+  }, [refreshTrigger]);
 
   return (
     <View style={styles.container}>

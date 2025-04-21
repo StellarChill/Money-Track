@@ -14,10 +14,11 @@ import {
 } from 'react-native';
 import CalendarComponent from '../components/CalendarComponent';
 import TransactionItem from '../components/TransactionItem';
-import MonthlySummary from '../components/MonthlySummary';
+import DaylySummary from '../components/DaylySummary';
 import styles from './HomeScreen.styles';
 import MonthTab from '../tabs/MonthTab';
 import AllTab from '../tabs/AllTab';
+import { API_URL } from '../../constants/api'; // นำเข้า API_URL
 
 interface TransactionItemProps {
   id: number;
@@ -29,8 +30,9 @@ interface TransactionItemProps {
   isIncome: boolean;
 }
 
-const API_URL = "https://early-fans-swim.loca.lt/api/transactions";
 const PAGE_SIZE = 10;
+
+// ลบ const API_URL = "https://great-parks-judge.loca.lt/api/transactions"; แล้วใช้จาก constants/api.ts แทน
 
 const HomeScreen = () => {
   const [selectedDate, setSelectedDate] = useState<string>("2025-04-01");
@@ -170,15 +172,15 @@ const HomeScreen = () => {
               />
             </View>
 
+
+            <MonthTab selectedMonth={selectedDate.slice(0, 7)} refreshTrigger={refreshTrigger} />
             <View style={styles.summarySection}>
-              <MonthlySummary
+              <DaylySummary
                 selectedDate={selectedDate}
                 onMonthChange={(newMonth) => setSelectedDate(newMonth.toISOString().split('T')[0])}
                 transactions={transactions}
               />
             </View>
-
-            <MonthTab selectedMonth={selectedDate.slice(0, 7)} refreshTrigger={refreshTrigger} />
             <AllTab refreshTrigger={refreshTrigger} />
 
             <TouchableOpacity style={styles.addButton} onPress={() => setIsModalVisible(true)}>
@@ -190,7 +192,7 @@ const HomeScreen = () => {
         }
         contentContainerStyle={styles.listContainer}
         data={transactions}
-        keyExtractor={(item) => item.id.toString()} 
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.transactionItem}>
             <View style={styles.transactionHeader}>
