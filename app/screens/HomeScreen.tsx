@@ -35,7 +35,7 @@ const PAGE_SIZE = 10;
 // ลบ const API_URL = "https://great-parks-judge.loca.lt/api/transactions"; แล้วใช้จาก constants/api.ts แทน
 
 const HomeScreen = () => {
-  const [selectedDate, setSelectedDate] = useState<string>("2025-04-01");
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [transactions, setTransactions] = useState<TransactionItemProps[]>([]);
   const [markedDates, setMarkedDates] = useState<{ [key: string]: { marked: boolean; dotColor: string } }>({});
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
