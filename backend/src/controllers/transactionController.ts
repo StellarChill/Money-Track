@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import * as TransactionService from "../services/transactionService";
 import { z, ZodError } from "zod";
 
-// Schema validation for Transaction
+
 const TransactionSchema = z.object({
   description: z.string().min(1, "Description is required"),
   amount: z.number().positive("Amount must be positive"),

@@ -3,14 +3,14 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" // หรือ "sqlite" ได้ตามที่คุณใช้
+  provider = "postgresql" 
   url      = env("DATABASE_URL")
 }
 
 model Transaction {
   id          Int      @id @default(autoincrement())
-  description String   // ชื่อ event เช่น "ค่าข้าว", "เงินเดือน"
-  amount      Decimal  @db.Decimal(10, 2)  // จำนวนเงิน
-  date        DateTime // วันที่ของรายการ
-  isIncome    Boolean  // true = รายรับ, false = รายจ่าย
+  description String   
+  amount      Decimal  @db.Decimal(10, 2)  
+  date        DateTime 
+  isIncome    Boolean  
 }

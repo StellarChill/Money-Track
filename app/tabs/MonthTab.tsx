@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Alert } from 'react-native';
 import styles from './MonthTab.styles';
-import { API_URL } from '../../constants/api'; // นำเข้า API_URL
+import { API_URL } from '../../constants/api';
 
 interface TransactionItemProps {
   id: number;
@@ -13,7 +13,6 @@ interface TransactionItemProps {
   isIncome: boolean;
 }
 
-// ลบ const API_URL = "https://great-parks-judge.loca.lt/api/transactions"; แล้วใช้จาก constants/api.ts แทน
 
 const MonthTab = ({ selectedMonth, refreshTrigger }: { selectedMonth: string; refreshTrigger: boolean }) => {
   const [income, setIncome] = useState<number>(0);

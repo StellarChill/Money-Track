@@ -15,8 +15,8 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({ selectedDate, onD
         current={selectedDate}
         onDayPress={(day) => onDayPress(day)}
         markedDates={{
-          ...markedDates, // ใช้ markedDates ที่ส่งมาจาก HomeScreen
-          [selectedDate]: { selected: true, selectedColor: '#00adf5' }, // เพิ่ม selectedDate
+          ...markedDates,
+          [selectedDate]: { selected: true, selectedColor: '#00adf5' },
         }}
         theme={{
           backgroundColor: '#ffffff',

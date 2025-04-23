@@ -42,10 +42,8 @@ const MonthlySummary: React.FC<MonthlySummaryProps> = ({
     let income = 0;
     let expense = 0;
   
-    // คำนวณรวมรายได้และค่าใช้จ่ายในเดือนที่เลือก
     transactions.forEach((transaction) => {
       const transactionDate = new Date(transaction.date);
-      // ตรวจสอบว่า transaction อยู่ในเดือนและปีเดียวกับ selectedMonth
       if (
         transactionDate.getFullYear() === year &&
         transactionDate.getMonth() === month

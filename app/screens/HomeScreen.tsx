@@ -1,24 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  SafeAreaView,
-  View,
-  Alert,
-  Text,
-  Button,
-  TextInput,
-  Switch,
-  Modal,
-  TouchableOpacity,
-  FlatList,
-  ActivityIndicator,
-} from 'react-native';
+import { SafeAreaView,View,Alert,Text,Button,TextInput,Switch,Modal,TouchableOpacity,FlatList,ActivityIndicator } from 'react-native';
 import CalendarComponent from '../components/CalendarComponent';
 import TransactionItem from '../components/TransactionItem';
 import DaylySummary from '../components/DaylySummary';
 import styles from './HomeScreen.styles';
 import MonthTab from '../tabs/MonthTab';
 import AllTab from '../tabs/AllTab';
-import { API_URL } from '../../constants/api'; // นำเข้า API_URL
+import { API_URL } from '../../constants/api'; 
 
 interface TransactionItemProps {
   id: number;
@@ -32,7 +20,6 @@ interface TransactionItemProps {
 
 const PAGE_SIZE = 10;
 
-// ลบ const API_URL = "https://great-parks-judge.loca.lt/api/transactions"; แล้วใช้จาก constants/api.ts แทน
 
 const HomeScreen = () => {
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
